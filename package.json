@@ -12,12 +12,101 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Create Gist",
+      "properties": {
+        "create-gist.token": {
+          "type": "string",
+          "order": 0,
+          "default": "",
+          "description": "The GitHub personal access token to use when creating a gist."
+        },
+        "create-gist.gistVisibility": {
+          "type": "string",
+          "order": 1,
+          "default": "Secret",
+          "description": "The visibility to use when creating a gist.",
+          "enum": [
+            "Public",
+            "Secret"
+          ]
+        },
+        "create-gist.menuMode": {
+          "type": "string",
+          "order": 2,
+          "default": "Default",
+          "description": "The menu mode to use in the context menu.",
+          "enum": [
+            "Default",
+            "Submenu",
+            "Both"
+          ]
+        },
+        "create-gist.includeFileName": {
+          "type": "boolean",
+          "order": 3,
+          "default": true,
+          "description": "Whether to include the file name in the gist."
+        },
+        "create-gist.copyToClipboard": {
+          "type": "boolean",
+          "order": 4,
+          "default": true,
+          "description": "Whether to copy the gist URL to the clipboard after creating a gist."
+        },
+        "create-gist.showNotification": {
+          "type": "boolean",
+          "order": 5,
+          "default": true,
+          "description": "Whether to show a notification after creating a gist."
+        }
+      }
+    },
     "commands": [
       {
-        "command": "create-gist.helloWorld",
-        "title": "Hello World"
+        "command": "create-gist.createGist",
+        "title": "Create Gist",
+        "category": "Create Gist"
+      },
+      {
+        "command": "create-gist.createPublicGist",
+        "title": "Public",
+        "category": "Create Gist"
+      },
+      {
+        "command": "create-gist.createSecretGist",
+        "title": "Secret",
+        "category": "Create Gist"
       }
-    ]
+    ],
+    "submenus": [
+      {
+        "id": "create-gist.submenu",
+        "label": "Create Gist"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "create-gist.createGist",
+          "when": "editorHasSelection && (config.create-gist.menuMode == 'Default' || config.create-gist.menuMode == 'Both')",
+          "group": "z_commands"
+        },
+        {
+          "submenu": "create-gist.submenu",
+          "when": "editorHasSelection && (config.create-gist.menuMode == 'Submenu' || config.create-gist.menuMode == 'Both')",
+          "group": "z_commands"
+        }
+      ],
+      "create-gist.submenu": [
+        {
+          "command": "create-gist.createPublicGist"
+        },
+        {
+          "command": "create-gist.createSecretGist"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",

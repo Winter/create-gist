@@ -1,26 +1,124 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	let disposables = [];
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "create-gist" is now active!');
+	disposables.push(vscode.commands.registerCommand('create-gist.createGist', () => {
+		const text = getSelectionText();
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('create-gist.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Create Gist!');
-	});
+		if (!text || text.length === 0) {
+			return;
+		}
 
-	context.subscriptions.push(disposable);
+		const isPublic = vscode.workspace.getConfiguration('create-gist').get<string>('gistVisibility', 'Secret') === 'Public';
+
+		createGistWithConfig(text, isPublic);
+	}));
+
+	disposables.push(vscode.commands.registerCommand('create-gist.createPublicGist', () => {
+		const text = getSelectionText();
+
+		if (!text || text.length === 0) {
+			return;
+		}
+
+		createGistWithConfig(text, true);
+	}));
+
+	disposables.push(vscode.commands.registerCommand('create-gist.createSecretGist', () => {
+		const text = getSelectionText();
+
+		if (!text || text.length === 0) {
+			return;
+		}
+
+		createGistWithConfig(text, false);
+	}));
+
+
+	context.subscriptions.push(...disposables);
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+function createGistWithConfig(text: string, isPublic: boolean) {
+	const config = vscode.workspace.getConfiguration('create-gist');
+	const token = config.get<string>('token');
+
+	if (!token) {
+		vscode.window.showErrorMessage('No GitHub token found');
+		return;
+	}
+
+	// Default file name
+	let fileName = 'gistfile1.txt';
+
+	if (config.get<boolean>('includeFileName')) {
+		const editor = vscode.window.activeTextEditor;
+
+		if (!editor) {
+			vscode.window.showErrorMessage('No active editor found');
+			return;
+		}
+
+		fileName = editor.document.fileName;
+	}
+
+	// Create gist and run through configuration options
+	createGist(token, text, isPublic, fileName)
+		.then<any>(res => {
+			if (res.status === 201) {
+				return res.json();
+			} 
+			
+			vscode.window.showErrorMessage(`Error creating Gist: ${res.statusText}`);
+		})
+		.then(json => {
+			const config = vscode.workspace.getConfiguration('create-gist');
+
+			if (config.get<boolean>('copyToClipboard')) {
+				vscode.env.clipboard.writeText(json.html_url);
+		
+				if (config.get<boolean>('showNotification')) {
+					vscode.window.showInformationMessage('Url copied to clipboard');
+				}
+			}
+			else if (config.get<boolean>('showNotification')) {
+				vscode.window.showInformationMessage('Created Gist');
+			}
+
+		})
+		.catch(err => {
+			vscode.window.showErrorMessage(`Error creating Gist: ${err}`);
+		});
+}
+
+function createGist(token: string, text: string, isPublic: boolean, fileName: string = 'gistfile1.txt'): Promise<Response> {
+	const data = {
+		public: isPublic,
+		files: {
+			[fileName]: {
+				content: text
+			}
+		}
+	};
+
+	return fetch('https://api.github.com/gists', {
+		method: 'POST',
+		headers: {
+			'Authorization': `Bearer ${token}`
+		},
+		body: JSON.stringify(data)
+	});
+}
+
+function getSelectionText(): string | undefined {
+	const editor = vscode.window.activeTextEditor;
+
+	if (!editor) {
+		vscode.window.showErrorMessage('No active editor found');
+		return;
+	}
+
+	const selection = editor.selection;
+
+	return editor.document.getText(selection);
+}
