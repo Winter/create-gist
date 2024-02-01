@@ -3,7 +3,8 @@
   "displayName": "Create Gist",
   "description": "Upload your code to Gist with ease",
   "version": "1.0.0",
-  "publisher": "wiinter",
+  "repository": "https://github.com/Winter/create-gist",
+  "publisher": "Winter",
   "icon": "resources/icon.png",
   "pricing": "Free",
   "author": {
