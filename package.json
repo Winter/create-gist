@@ -1,8 +1,19 @@
 {
   "name": "create-gist",
   "displayName": "Create Gist",
-  "description": "Todo",
-  "version": "0.0.1",
+  "description": "Upload your code to Gist with ease",
+  "version": "1.0.0",
+  "publisher": "wiinter",
+  "icon": "resources/icon.png",
+  "pricing": "Free",
+  "author": {
+    "name": "Winter"
+  },
+  "keywords": [
+    "gist",
+    "create",
+    "upload"
+  ],
   "engines": {
     "vscode": "^1.85.0"
   },
