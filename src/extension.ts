@@ -59,7 +59,7 @@ function createGistWithConfig(text: string, isPublic: boolean) {
 			return;
 		}
 
-		fileName = editor.document.fileName;
+		fileName = editor.document.fileName.split('\\').pop() || fileName;
 	}
 
 	// Create gist and run through configuration options
