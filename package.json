@@ -6,6 +6,7 @@
   "publisher": "Winter",
   "icon": "resources/icon.png",
   "pricing": "Free",
+  "license": "MIT",
   "bugs": "https://github.com/Winter/create-gist/issues",
   "repository": {
       "type": "git",
